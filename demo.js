@@ -473,6 +473,136 @@ pubsub.publish("inbox/newMessage","Are you still here?");
 
 
 
+/**
+ * Prototype原型模式
+ * 在ECMAScript5标准中定义，真正的原型继承要求使用Object.create
+ * Object.create创建一个对象，拥有指定原型和可选的属性
+ * 
+	var myCar = {
+		name : "Ford Escort",
+		drive : function(){
+			console.log("Weeee.I'm driving");
+		},
+		panic : function(){
+			console.log("Wait.How do you stop this thing?");
+		}
+	};
+
+	// 使用Object.create实例化一个新的Car
+	var yourCar = Object.create(myCar);
+
+	// 现在可以看到一个对象是另外一个对象的原型
+	console.log(yourCar.__proto__ === myCar);
+
+
+
+
+
+
+	// Object.create还允许我们使用第二个提供的参数来初始化对象属性，例如：
+	var vehicle = {
+		getModel : function(){
+			console.log("The model of this vehicle is.." + this.model);
+		}
+	};
+	var car = Object.create(vehicle,{
+		"id" : {
+			value : My_GLOBAL.nextId(),
+			// writable:false, configurable:false 默认值
+			enumerable : true
+		},
+		"model" : {
+			value : "Ford",
+			enumerable : true
+		}
+	});
+	// 在这里可以使用对象直面量在Object.create的第二个参数上初始化属性
+
+
+
+ */
+
+
+
+/**
+ * Command(命令)模式
+ * Command模式旨在将方法调用、请求或操作封装到单一对象中
+ * 从而根据我们不同的请求进行参数化和传递可供执行的方法调用
+ * 这种模式将调用操作对象与知道如何实现该操作的的对象解耦
+
+var CarManage = (function (){
+	var CarManage = {
+
+		// 请求信息
+		requestInfo : function(model,id){
+			return "The information for" + model + "with ID" + id + "is foobar";
+		},
+
+		// 订购汽车
+		buyVehicle : function(model,id){
+			return "You have successfully purchased Item" + id + ",a" + model;
+		},
+
+		// 组织一个view
+		arrangeViewing : function(model,id){
+			return "You have successfully booked a viewing of " + model + "(" + id + ")";
+		},
+
+		// 我们为CarManage.execute方法添加一个定义
+		execute : function(name){
+			return CarManage[name] && CarManage[name].apply(CarManage,[].slice.call(arguments,1));
+		}
+	};
+	return CarManage;
+})();
+
+console.log(CarManage.execute("arrangeViewing","Ferrari","14523"));
+console.log(CarManage.execute("buyVehicle","Ford Escort","453543"));
+
+
+
+
+
+
+
+
+
+
+ * 在这个例子里命令的执行者menuItemBlod和具体实现者commands[‘blod’]两者分开
+ * 这样如果要修改具体实现，仅需要修改commands.blod即可，另外在Cmd中定义了
+ * track数组，用来存储操作，便于撤销，和保存操作。如果要添加一个新的菜单选项，
+ * 那么，只要在commands中定义实现代码，然后创建Cmd对象，并在定义菜单项是
+ * 传递此命令对象即可。注：以上代码仅为说明问题而临时想的，可能会有一些不完善的
+ * 地方。
+	var commands={
+		blod:function(){},
+		font_family;function(){},
+		font_color:function(){},
+		code:function(){}
+		//等等
+	};//命令集合
+
+	var Cmd=(function(){
+		var track=[];
+		return function(cmds,type){
+			this.command=cmds[type];
+			this.exec=function(){
+				var that=this;
+				track.push(that.command);
+				this.command();
+			};
+			this.undo=function(){
+				var handle=track.pop();
+				//do something;
+			};
+		}
+	})();
+
+	var blodCmd=new Cmd(commands,'blod');//定义一个命令
+
+	var menuItemBlod=new menuItem('blod',blodCmd);//一个菜单选项
+
+ */
 
 
 
