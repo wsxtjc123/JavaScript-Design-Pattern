@@ -738,6 +738,188 @@ console.log(CarManage.execute("buyVehicle","Ford Escort","453543"));
 
 
 
+/**
+ * Abstract Factory(抽象工厂)
+ 
+
+// Klass相当于extend的实现，主要作用是继承父类
+var klass = (function () {
+    var F = function () {};
+    return function (Parent) {
+		var Child;
+		Child = function () {
+		    Child.superproto.constructor.apply(this, arguments);
+		};
+		F.prototype = Parent.prototype;
+		Child.prototype = new F();
+		Child.prototype.constructor = Child;
+		Child.superproto = Parent.prototype;
+		return Child;
+    };
+})();
+
+
+// 一般RPG游戏里， 一开始我们都要创建角色，选择职业，战士、法师还是弓箭手
+// 都是继承了Character类
+var Character = function () {},
+	Warrior = klass(Character),
+	Mage = klass(Character),
+	Archer = klass(Character),
+	Player = function () {
+	};
+	
+Character.prototype.level = function () {
+};
+Character.prototype.gather = function () {
+};
+Character.prototype.fight = function () {
+};
+Player.prototype.play = function (role) {
+	var character;
+	switch (role) {
+		case "战士":
+			character = new Warrior();
+			break;
+		case "法师":
+			character = new Mage();
+			break;
+		case "弓箭手":
+			character = new Archer();
+			break;
+		default:
+			character = new Warrior();
+	}
+	character.level();
+	character.gather();
+	character.fight();
+};
+var player = new Player();
+player.play("法师");
+
+// 这样写的问题在于，如果我们想要再加入一个新职业，比如盗贼，
+// 我们不得不找到Player，打开它的代码，给switch增加一个case，
+// 另外，如果还有PlayerVIP1,PlayerVIP2,PlayerVIP3...都在自己内部创建角色，
+// 那每一处都需要修改，也就是要修改客户端的代码，这听上去就让人觉得不太好，
+// 更好的办法是把创建角色的工作交给一个简单工厂来做。
+
+// 这里值得一提的是，在教科书中显然会定义一个CharacterFactory类，
+// 但在JS里呢，是定义一个对象好还是一个构造函数好呢，我有点小纠结，感觉没有什么不同
+// 书上说有时CharacterFactory类里直接定义静态方法，那么可能更接近对象一些
+// 当然构造函数也是对象，给构造函数一个属性方法的话看起来是一样的。
+
+
+// 简单工厂
+var CharacterFactory = {
+	createCharacter: function (role) {
+		var character;
+		switch (role) {
+			case "战士":
+				character = new Warrior();
+				break;
+			case "法师":
+				character = new Mage();
+				break;
+			case "弓箭手":
+				character = new Archer();
+				break;
+			default:
+				character = new Warrior();
+		}
+		return character;
+	}
+};
+Player.prototype.play = function (role) {
+	var character = CharacterFactory.createCharacter(role);
+	character.level();
+	character.gather();
+	character.fight();
+};
+
+// 现在只需要修改工厂对象就可以了，
+// 客户端代码保持不变Character.createCharacter()，
+// 也不是严格的不变，因为”战士“或”盗贼“的判断还是放在客户端，
+// 但是新增盗贼职业不还是要修改switch加一个case吗！这也违背了开闭原则。
+// 这时工厂方法（Factory Method）就登场了。
+
+
+
+
+// 工厂方法
+// 先定义一个工厂接口，
+// 这个接口定义了一个工厂方法来创建某一类型的产品，
+// 然后有任意数量的具体工厂来实现这个接口，
+// 在各自的工厂方法里创建那个类型产品的具体实例（ TODO:这个优点我还没有太理解 ）。
+var WarriorFactory = function() {},
+	MageFactory = function() {},
+	ArcherFactory = function() {};
+WarriorFactory.prototype.createCharacter = function() {
+	return new Warrior();
+};
+MageFactory.prototype.createCharacter = function() {
+	return new Mage();
+};
+ArcherFactory.prototype.createCharacter = function() {
+	return new Archer();
+};
+Player.prototype.play = function(role) {
+	var factory, character;
+	switch (role) {
+		case "战士":
+			factory = new WarriorFactory();
+			break;
+		case "法师":
+			factory = new MageFactory();
+			break;
+		case "弓箭手":
+			factory = new ArcherFactory();
+			break;
+		default :
+			factory = new WarriorFactory();
+	}
+	character = factory.createCharacter();
+	character.level();
+	character.gather();
+	character.fight();
+};
+
+// 当我需要增加一个盗贼职业，就增加一个盗贼Factory，让它实现createCharacter方法，
+// 这样整个的工厂体系不会有修改的变化，而只是扩展的变化，符合了开闭原则。
+// 但是，修改的噩梦落到了客户端上，这是我的一个困惑，感觉没有简化，反而增加了一大堆类和方法，标记一个TODO。
+
+
+// 当然，可以发挥JS灵活性特点
+CharacterFactory = (function() {
+	var roles = {
+		Warrior: Warrior,
+		Mage: Mage,
+		Archer: Archer
+	};
+	return {
+		createCharacter: function(role) {
+			var Character = roles[role];
+			return Character ? new Character() : new Warrior();
+		},
+		registerCharacter: function(role, Character) {
+			var proto = Character.prototype;
+			if (proto.level && proto.gather && proto.fight) {
+				roles[role] = Character;
+			}
+		}
+	}
+})();
+Player.prototype.play = function(role) {
+	var character = CharacterFactory.createCharacter(role);
+	character.level();
+	character.gather();
+	character.fight();
+};
+var Assasin = klass(Character);
+CharacterFactory.registerCharacter("Assasin", Assasin);
+player.play("Assasin");
+ 
+ */
+
+
 
 
 
