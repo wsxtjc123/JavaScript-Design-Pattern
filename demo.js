@@ -916,15 +916,135 @@ Player.prototype.play = function(role) {
 var Assasin = klass(Character);
 CharacterFactory.registerCharacter("Assasin", Assasin);
 player.play("Assasin");
- 
+
  */
 
 
+// 妈的，还是以造汽车的为例子吧
+// 先写一个交通工具的类，用作父类，继承
+// Vehicle.prototype.drive和breakDown是合格证，大概意思就是保证能上路开，一年保修之类
+function Vehicle(){}
+Vehicle.prototype.drive = true;
+Vehicle.prototype.breakDown = true;
+
+
+// // 先写个extend的扩展函数
+// var extend = (function(){
+// 	function F(){}
+
+// 	// parent为需要继承的父类
+// 	return function (parent){
+// 		var Child = function(){
+// 			parent.prototype.constructor.apply(this,arguments);
+// 		}
+// 		F.prototype = parent.prototype;
+// 		Child.prototype = new F();
+// 		Child..prototype.constructor = Child;
+// 		Child.superproto = parent;				//设置一个属性指向父构造器
+// 		return Child;
+// 	}
+// })();
+
+
+
+// Car和Truck构造函数相当于生产车辆的车间
+// options是客户的定制需求，如果客户没有告诉你需求就按照默认的样式去生产
+function Car(options){
+	this.doors = options.doors || 4;
+	this.color = options.color || "silver";
+}
+Car.prototype.drive = true;
+Car.prototype.breakDown = true;
+
+function Truck(options){
+	this.doors = options.doors || 4;
+	this.color = options.color || "blue";
+}
+Truck.prototype.drive = true;
+Truck.prototype.breakDown = true;
+
+
+var AbstractVehicleFactory = (function(){
+
+	// 相当于一个记录列表，用于记录  需要生产的汽车名 : 让哪个生产车间去实现生产
+	var types = {};
+
+	return {
+		// 这个东西用于生产汽车
+		// 传递两个参数
+		// type:车子的类型
+		// options:客户的定制需求
+		getVehicle : function(type,options){
+			var Vehicle = types[type];
+			return Vehicle ? new Vehicle(options) : null;
+		},
+
+		// 这个东西用于保存需要生产的汽车信息
+		// 传递两个参数
+		// type:车子的类型
+		// vehicle:生产车子的车间
+		registerVehicle : function(type,vehicle){
+			var proto = vehicle.prototype;
+			// 只注册实现车辆契约的类型
+			if(proto.drive && proto.breakDown){
+				types[type] = vehicle;
+			}
+			return AbstractVehicleFactory;
+		}
+	};
+})();
+
+
+// 用法，先申请注册两辆车
+// 由registerVehicle方法内部判断该类型的车是否符合标准
+// 符合就添加到列表内准备生产
+// 不符合就不添加
+AbstractVehicleFactory.registerVehicle("car",Car);
+AbstractVehicleFactory.registerVehicle("truck",Truck);
+
+// 实例化车辆对象
+var car   = AbstractVehicleFactory.getVehicle("car",{doors : 5,color : "white"}),
+	truck = AbstractVehicleFactory.getVehicle("truck",{doors : 2,color : "black"});
+
+console.log(car);
+console.log(truck);
 
 
 
 
+// 那尾撒我们要使用抽象工厂方法嘞？
+// 因为抽象工厂方法解决了工厂方法的扩展性问题
+// 比如说我现在临时决定再扩充一个建造公共汽车的车间
+// 那我只需要先定义一个生产车间
+function Bus(options){
+	this.doors = options.doors || 2;
+	this.limit = options.limit || 20;
+	this.color = options.color || "green";
+}
+// 不能忘了产品许可证书
+Bus.prototype.drive = true;
+Bus.prototype.breakDown = true;
+
+// 先定制，再生产
+AbstractVehicleFactory.registerVehicle("bus",Bus);
+var bus = AbstractVehicleFactory.getVehicle("bus",{});
+
+// 打印出来看看，嗯，不错~
+console.log(bus);
 
 
+// 如果换成普通的工厂模式
+// 那么VehicleFactory是这么写的
 
 
+// function VehicleFactory(){}
+// VehicleFactory.prototype.vehicleClass = Car;
+// VehicleFactory.prototype.createVehicle = function(options){
+// 	if(options.vehicleType === "car"){
+// 		this.vehicleClass = Car;
+// 	}else{
+// 		this.vehicleClass = Truck;
+// 	}
+// 	return new this.vehicleClass(options);
+// };
+// 这样就写死了，后期只能通过修改函数源代码来实现扩展，非常不方便
