@@ -606,3 +606,143 @@ console.log(CarManage.execute("buyVehicle","Ford Escort","453543"));
 
 
 
+
+/**
+ * Facade(外观)模式
+ * Facade模式为更大的代码提供了一个方便的高层次接口
+ * 能够隐藏其底层的真实复杂性
+	
+	 var module = (function(){
+		var _private = {
+			i : 5,
+			get : function(){
+				console.log("current value: " + this.i);
+			},
+			set : function(val){
+				this.i = val;
+			},
+			run : function(){
+				console.log("running");
+			},
+			jump : function(){
+				console.log("jumping");
+			}
+		};
+		return {
+			facade : function(args){
+				_private.set(args.val);
+				_private.get();
+				if(args.run){
+					_private.run();
+				}
+			}
+		};
+	})();
+
+
+	// 输出："running",10
+	module.facade({
+		run : true,
+		val : 10
+	});
+ */
+
+
+
+/**
+ * Factory(工厂)模式
+ * Factory模式是另一种创建型模式，涉及创建对象的概念
+ * 其分类不同于其他模式的地方在于它不显式地要求使用一个构造函数
+ * 而Factory可以提供一个通用的接口来创建对象
+ * 我们可以指定我们所希望创建的工厂对象的类型
+	 
+	// 下面这个示例构建在之前的代码片段之上，使用Constructor模式逻辑来定义汽车
+	// 它展示了如何使用Factory模式来实现vehicle工厂
+
+	// 定义Car构造函数
+	function Car(options){
+		// 默认值
+		this.doors = options.doors || 4;
+		this.state = options.state || "brand new";
+		this.color = options.color || "silver";
+	}
+
+	// 定义Truck构造函数
+	function Truck(options){
+		this.state = options.state || "used";
+		this.wheelSize = options.wheelSize || "large";
+		this.color = options.color || "blue";
+	}
+
+	// 定义vehicle工厂的大体代码
+	function VehicleFactory(){}
+
+	// 定义该工厂factory的原型和试用工具
+	// 默认的vehicleClass是Car
+	VehicleFactory.prototype.vehicleClass = Car;
+
+	// 创建新Vehicle实例的工厂方法
+	VehicleFactory.prototype.createVehicle = function(options){
+		if(options.vehicleType === "car"){
+			this.vehicleClass = Car;
+		}else{
+			this.vehicleClass = Truck;
+		}
+		return new this.vehicleClass(options);
+	};
+
+	// 创建生成汽车的工厂实例
+	var carFactory = new VehicleFactory();
+	var car = carFactory.createVehicle({
+		vehicleType : "car",
+		color : "yellow",
+		doors : 6
+	});
+
+	// 测试汽车是由vehicleClass的原型里prototype里的Car创建的
+	// 输出：true
+	console.log(car instanceof Car);
+	console.log(car);
+
+
+
+
+
+	// 在方案2中，我们把VehicleFactory归入子类来创建一个构建Truck的工厂类
+	function TruckFactory(){}
+	TruckFactory.prototype = new VehicleFactory();
+	// TruckFactory.prototype.vehicleClass = Truck;
+	var truckFactory = new TruckFactory();
+	var myBigTruck   = truckFactory.createVehicle({
+		state : "omg..so bad",
+		color : "pick",
+		wheelSize : "so big"
+	});
+
+	// 确认myBigTruck是由原型Truck创建的
+	// 输出：true
+	console.log(myBigTruck instanceof Truck);
+	console.log(myBigTruck);
+
+
+	总结：
+		1.当对象或组件设置涉及高复杂性
+		2.当需要根据所在的不同环境轻松生成对象的不同实例时
+		3.当处理很多共享相同属性的小型对象或组件时
+		4.在编写只需要满足一个API契约(亦称鸭子类型)的其他对象的实例对象时。对于解耦是很有用的。
+
+		如果应用错误，这种模式会为应用程序带来大量不必要的复杂性。
+		除非为常见对象提供一个接口是我们正在编写的库或框架的设计目标，否则我建议坚持使用显示构造函数，以避免不必要的开销。
+ */
+
+
+
+
+
+
+
+
+
+
+
+
