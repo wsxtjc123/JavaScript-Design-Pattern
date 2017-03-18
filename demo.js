@@ -917,7 +917,7 @@ var Assasin = klass(Character);
 CharacterFactory.registerCharacter("Assasin", Assasin);
 player.play("Assasin");
 
- */
+
 
 
 // 妈的，还是以造汽车的为例子吧
@@ -1048,3 +1048,133 @@ console.log(bus);
 // 	return new this.vehicleClass(options);
 // };
 // 这样就写死了，后期只能通过修改函数源代码来实现扩展，非常不方便
+ */
+
+
+
+
+
+/**
+ * Mixin 模式
+ 
+// 子类化
+// 为了演示子类化，首先需要一个可以创建自己新实例的基本对象。
+// 让我们围绕一个人的概念来模拟子类化的实现
+var Person = function(firstName,lastName){
+	this.firstName = firstName;
+	this.lastName  = lastName;
+	this.gender    = "male";
+}
+
+
+// 下一步，指定一个新类(对象)，它是现有Person对象的一个子类。
+// 想象一下，在继承Person超类上的属性同时，我们需要在SuperHero上添加另外不同的属性
+// 由于超级英雄与平常人具有很多共同的特征(如姓名、性别)
+
+// Person的新实例很容易像如下这样创建
+var clark = new Person("Clark","Kent");
+
+// 为超人定义一个子类构造函数
+var SuperHero = function(firstName,lastName,powers){
+	// 调用超类的构造函数，然后使用.call()方法进行调用从而进行初始化
+	Person.call(this,firstName,lastName);
+
+	// 最后，保存powers，在正常Person里找不到的特性数组
+	this.powers = powers;
+};
+
+// 让SuperHero的原型继承Person的原型
+SuperHero.prototype = Object.create(Person.prototype);
+var superman = new SuperHero("Clark","Kent",["flight","heat-vision"]);
+// 输出Person属性和powers
+console.log(superman);
+
+// SuperHero构造函数创建一个源于Person的对象
+// 这种类型的对象拥有在链中比它们靠上对象的属性
+// 如果我们已经在Person对象中设置默认值
+// SuperHero就能够重写所有继承的值，并且其对象本身也可以拥有特定的值
+
+
+
+// Mixin(混入)
+// 本实例将演示如何扩展构造函数
+// 不需要对我们可能拥有的每个构造函数都重复这个过程而将功能包含进来
+
+// 首先定义一个简单的Car构造函数
+var Car = function(settings){
+	this.model = settings.model || "no model provided";
+	this.color = settings.color || "no colour provided";
+};
+Car.prototype.driveForward = function(){
+	console.log("我是Car中的driveForward方法");
+}
+
+// Mixin
+var Mixin = function(){};
+
+Mixin.prototype = {
+	driveForward : function(){
+		console.log("drive forward");
+	},
+	driveBackward : function(){
+		console.log("drive backward");
+	},
+	driveSideways : function(){
+		console.log("drive sideways");
+	}
+};
+
+// 通过一个方法将现有对象扩展到另外一个对象上
+// 相当于简单的一个jQuery浅拷贝
+function extend(receivingClass,givingClass){
+
+	// 如果参数大于等于三个，说明只需要提供特定的方法
+	if(arguments.length >= 3){
+		for(var i=2,len = arguments.length;i < len;i++){
+			receivingClass.prototype[arguments[i]] = givingClass.prototype[arguments[i]]
+		}
+	}else if(arguments.length === 2){
+		// 提供所有方法
+		for(var methodName in givingClass.prototype){
+			if(!receivingClass.prototype.hasOwnProperty(methodName)){
+				receivingClass.prototype[methodName] = givingClass.prototype[methodName];
+			}
+		}
+	}else if(arguments.length < 2){
+		return "请至少传入两个对象参数";
+	}
+}
+
+
+// 给Car构造函数增加"driveForward"和"driveBackward"两个方法
+extend(Car,Mixin,"driveForward","driveBackward");
+
+// 创建一个新Car
+var myCar = new Car({
+	model : "Ford Escort",
+	color : "blue"
+});
+
+// 测试确保新增方法可用
+// 输出drive forward和drive backward
+myCar.driveForward();
+myCar.driveBackward();
+
+// 也可以通过不声明特定方法名的形式，将Mixin的所有方法都添加到Car里
+
+
+// 总结：
+// 这种继承扩展的方法与子类化的继承有别
+// 子类化的继承实现原理是原型链继承对象实例
+// 通过重写原型对象的方式来实现继承
+// 
+// 这种extend扩展继承是通过循环遍历赋值父类原型上的属性来完成继承的。
+// extend继承的优点的话，个人感觉是能够有效地控制继承，有效地避免重复
+// 缺点的话就是浅拷贝带来的一些引用类型对象共用问题，以及无法探知继承父类的问题
+// 也就是说你用 instance of 或者之类的探知方法是无法探知到父类的
+
+
+
+ */
+
+
